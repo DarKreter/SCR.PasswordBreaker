@@ -12,7 +12,7 @@ set(OPENSSL_USE_STATIC_LIBS TRUE)
 find_package(OpenSSL REQUIRED)
 
 
-add_executable(firmware src/main.cpp src/md5.cpp)
+add_executable(firmware src/main.cpp src/utils.cpp src/threads.cpp)
 
 target_include_directories(firmware PUBLIC . inc src)
 
