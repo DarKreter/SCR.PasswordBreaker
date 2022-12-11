@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void ReadPasswords(std::string filename, std::vector<Password_t>& passwd)
+void ReadPasswords(std::string filename, std::list<Password_t>& passwd)
 {
     ifstream file(filename);
     if(!file.is_open())
