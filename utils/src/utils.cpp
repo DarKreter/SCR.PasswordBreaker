@@ -7,7 +7,9 @@
 
 using namespace std;
 
-void ReadPasswords(std::string filename, std::list<Password_t>& passwd)
+namespace pb {
+
+void ReadPasswords(std::string filename, pb::SuperiorList<Password_t>& passwd)
 {
     ifstream file(filename);
     if(!file.is_open())
@@ -48,3 +50,5 @@ string md5(string input)
 }
 
 std::string SSL_Version() { return SSLeay_version(SSLEAY_VERSION); }
+
+} // namespace pb

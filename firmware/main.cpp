@@ -16,34 +16,29 @@ constexpr int THREADS_NUM = 1;
 
 int main(int argc, char* argv[])
 {
-    pb::SuperiorList<int> test;
-    test.push_front(12);
-    test.push_front(13);
-
-    pb::Element_t<int>* node = test.Front();
-
-    while(node != NULL) {
-        cout << node->GetValue() << endl;
-        node = node->Next();
-    }
-
-    return 0;
     // check argc
     if(argc != 3) {
         std::cout << "Incorrect call paramters!" << std::endl;
         exit(2);
     }
 
-    cout << "Using OpenSSL version " << SSL_Version() << endl;
+    cout << "Using OpenSSL version " << pb::SSL_Version() << endl;
 
     // Read Dict and Passwd file
     try {
-        ReadDictionary(argv[1], pb::dict);
-        ReadPasswords(argv[2], pb::passwd);
+        pb::ReadDictionary(argv[1], pb::dict);
+        pb::ReadPasswords(argv[2], pb::passwd);
 
-        for(auto& password : pb::passwd)
-            cout << password.GetID() << " " << password.GetHash() << " " << password.GetMail()
-                 << " " << password.GetUsername() << endl;
+        pb::SuperiorList<pb::Password_t>::Element_t* node = pb::passwd.Front();
+
+        while(node != NULL) {
+            cout << node->GetValue().GetMail() << endl;
+            node = node->Next();
+        }
+
+        // for(auto& password : pb::passwd)
+        //     cout << password.GetID() << " " << password.GetHash() << " " << password.GetMail()
+        //          << " " << password.GetUsername() << endl;
 
         // for(auto& word : pb::dict)
         //     cout << word << endl;

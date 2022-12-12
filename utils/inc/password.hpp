@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace pb {
+
 class Password_t {
     uint16_t id;
     std::string md5_hash;
@@ -27,5 +29,7 @@ public:
 
     inline void Crack() { is_cracked = true; }
 };
+
+} // namespace pb
 
 #endif // PASSWORD_SCR
