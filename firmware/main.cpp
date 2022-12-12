@@ -37,22 +37,25 @@ int main(int argc, char* argv[])
     }
 
     // Create threads
-    pthread_t threads[THREADS_NUM];
-    pthread_t thread;
+    pthread_t breakers[THREADS_NUM];
+    pthread_t listener;
     // properties of each thread
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     pthread_mutex_init(&pb::mutex, NULL);
+    pthread_cond_init(&pb::condvar, NULL);
     // create threads
-    pthread_create(&thread, &attr, pb::Listener, NULL);
+    pthread_create(&listener, &attr, pb::Listener, NULL);
 
-    pthread_create(&threads[0], &attr, pb::Breaker1, NULL);
+    pthread_create(&breakers[0], &attr, pb::Breaker1, NULL);
 
     /* Wait for all threads to complete */
     for(uint8_t i = 0; i < THREADS_NUM; i++)
-        pthread_join(threads[i], NULL);
-    pthread_join(thread, NULL);
+        pthread_join(breakers[i], NULL);
+    cout << "Breakers generated every password they could! (too bad)" << endl;
+    pthread_cancel(listener);     // kill listener
+    pthread_join(listener, NULL); // free his resources
 
     /* Clean up */
     pthread_attr_destroy(&attr);

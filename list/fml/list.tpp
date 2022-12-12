@@ -2,17 +2,17 @@
 #define LIST_TPP_SCR
 
 #include "list.hpp"
+#include <pthread.h>
 #include <unistd.h> //sleep
 
 namespace pb // PasswordBreaker
 {
-template <typename T>
-pthread_t SuperiorList<T>::lastRemovalThread;
 
 template <typename T>
 void SuperiorList<T>::push_front(T _value)
 {
     Node_t* temp = new Node_t(_value);
+    pthread_rwlock_wrlock(&rw_mutex); // write lock
     // empty list
     if(front == NULL) {
         front = back = temp;
@@ -26,12 +26,15 @@ void SuperiorList<T>::push_front(T _value)
         front = temp;
     }
     size++;
+    pthread_rwlock_unlock(&rw_mutex); // unlock
 }
 
 template <typename T>
 void SuperiorList<T>::push_back(T _value)
 {
     Node_t* temp = new Node_t(_value);
+
+    pthread_rwlock_wrlock(&rw_mutex); // write lock
     // empty list
     if(front == NULL) {
         front = back = temp;
@@ -45,6 +48,7 @@ void SuperiorList<T>::push_back(T _value)
         back = temp;
     }
     size++;
+    pthread_rwlock_unlock(&rw_mutex); // unlock
 }
 
 template <typename T>
@@ -53,6 +57,7 @@ auto SuperiorList<T>::erase(Iterator it) -> Iterator
     if(it == nullptr) // null iterator
         return nullptr;
 
+    pthread_rwlock_wrlock(&rw_mutex); // write lock
     // only one element in list
     if(it.currentNode->prev == nullptr && it.currentNode->next == nullptr) {
         // std::cout << "only one" << std::endl;
@@ -77,6 +82,7 @@ auto SuperiorList<T>::erase(Iterator it) -> Iterator
         it.currentNode->next->prev = it.currentNode->prev;
         it.currentNode->prev->next = it.currentNode->next;
     }
+    pthread_rwlock_unlock(&rw_mutex); // unlock
 
     // This monster create thread that frees memory after 'little' delay
     // We can't remove memory instantly, because we don't know how many threads are now looking at
@@ -96,9 +102,9 @@ auto SuperiorList<T>::erase(Iterator it) -> Iterator
         pthread_exit(NULL);
     };
     // detach older thread (if exists)
-    pthread_detach(SuperiorList<T>::lastRemovalThread);
+    pthread_detach(lastRemovalThread);
     // create new one
-    pthread_create(&SuperiorList<T>::lastRemovalThread, &attr, Removal, (void*)it.currentNode);
+    pthread_create(&lastRemovalThread, &attr, Removal, (void*)it.currentNode);
     pthread_attr_destroy(&attr);
 
     // since we erase one node
@@ -111,7 +117,9 @@ auto SuperiorList<T>::erase(Iterator it) -> Iterator
 template <typename T>
 auto SuperiorList<T>::Iterator::operator++() -> Iterator&
 {
+    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->next;
+    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return *this;
 }
 
@@ -120,7 +128,9 @@ template <typename T>
 auto SuperiorList<T>::Iterator::operator++(int) -> Iterator
 {
     Iterator tmp = *this;
+    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->next;
+    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return tmp;
 }
 
@@ -128,7 +138,9 @@ auto SuperiorList<T>::Iterator::operator++(int) -> Iterator
 template <typename T>
 auto SuperiorList<T>::Iterator::operator--() -> Iterator&
 {
+    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->prev;
+    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return *this;
 }
 
@@ -137,14 +149,28 @@ template <typename T>
 auto SuperiorList<T>::Iterator::operator--(int) -> Iterator
 {
     Iterator tmp = *this;
+    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->prev;
+    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return tmp;
+}
+
+// dereference operators
+template <typename T>
+T SuperiorList<T>::Iterator::operator*() const
+{
+    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
+    T temp = currentNode->value;
+    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
+    return temp;
 }
 
 template <typename T>
 SuperiorList<T>::~SuperiorList()
 {
     pthread_join(this->lastRemovalThread, NULL);
+
+    pthread_rwlock_destroy(&rw_mutex);
 
     // Clear memory
     Node_t *next, *elem = front;
@@ -161,7 +187,7 @@ SuperiorList<T>::~SuperiorList()
 template <typename T>
 void SuperiorList<T>::JoinThreads()
 {
-    usleep(THREAD_WAIT_BEFORE_REMOVAL);
+    usleep(2 * THREAD_WAIT_BEFORE_REMOVAL);
     pthread_join(this->lastRemovalThread, NULL);
 }
 

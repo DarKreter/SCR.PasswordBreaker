@@ -14,9 +14,8 @@ namespace pb // PasswordBreaker
 // threads.
 template <typename T>
 class SuperiorList {
-    // Stores information about last launched removal thread
-    static pthread_t lastRemovalThread;
-#define THREAD_WAIT_BEFORE_REMOVAL 100'000 // 100ms
+
+#define THREAD_WAIT_BEFORE_REMOVAL 50'000 // 50ms
 
     // Single element of the list
     struct Node_t {
@@ -26,25 +25,28 @@ class SuperiorList {
         Node_t(T _value) : value(_value) {}
     };
 
-    size_t size;   // size of list
-    Node_t* front; // first element
-    Node_t* back;  // last element
+    size_t size;                 // size of list
+    Node_t* front;               // first element
+    Node_t* back;                // last element
+    pthread_t lastRemovalThread; // information about last launched removal thread
+    pthread_rwlock_t rw_mutex;
 
 public:
     // classic iterator
     class Iterator {
         friend SuperiorList;
         Node_t* currentNode; // points to node
+        SuperiorList* myList;
 
     public:
         // magic
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::ptrdiff_t;
 
-        Iterator(Node_t* _node) : currentNode(_node) {}
+        Iterator(Node_t* _node, SuperiorList* spl = nullptr) : currentNode(_node), myList(spl) {}
 
         // dereference operators
-        T& operator*() const { return currentNode->value; }
+        T operator*() const;
         T* operator->() { return &currentNode->value; }
 
         Iterator& operator++();   // Prefix increment
@@ -58,7 +60,7 @@ public:
     };
 
     // create empty list
-    SuperiorList() : size(0), front(nullptr), back(nullptr) {}
+    SuperiorList() : size(0), front(nullptr), back(nullptr), rw_mutex(PTHREAD_RWLOCK_INITIALIZER) {}
     ~SuperiorList(); // free memory
 
     // Waits for last thread to finish its job
@@ -72,10 +74,15 @@ public:
     T& Back() { return front->value; }
 
     // standard iterators
-    Iterator begin() { return Iterator(front); }
-    Iterator end() { return Iterator(nullptr); }
-    Iterator rbegin() { return Iterator(nullptr); }
-    Iterator rend() { return Iterator(back); }
+    Iterator begin() { return Iterator(front, this); }
+    Iterator end() { return Iterator(nullptr, this); }
+    Iterator rbegin() { return Iterator(nullptr, this); }
+    Iterator rend() { return Iterator(back, this); }
+
+    // locking functions
+    void ReadLock() { pthread_rwlock_rdlock(&rw_mutex); }
+    void WriteLock() { pthread_rwlock_wrlock(&rw_mutex); }
+    void Unlock() { pthread_rwlock_unlock(&rw_mutex); }
 
     // remove single element (thread safe way)
     Iterator erase(Iterator it);

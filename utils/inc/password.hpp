@@ -11,8 +11,10 @@ class Password_t {
     std::string md5_hash;
     std::string email;
     std::string username;
+    std::string crackedPsw;
 
 public:
+    Password_t() : id(0) {}
     explicit Password_t(std::string line)
     {
         std::stringstream ss(line);
@@ -24,6 +26,9 @@ public:
     inline std::string GetHash() const { return md5_hash; }
     inline std::string GetMail() const { return email; }
     inline std::string GetUsername() const { return username; }
+    inline std::string GetCrackedPassword() const { return crackedPsw; }
+
+    inline void Cracked(std::string s) { crackedPsw = s; }
 };
 
 } // namespace pb
