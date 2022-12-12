@@ -2,24 +2,24 @@
 #define LIST_TPP_SCR
 
 #include "list.hpp"
-#include <pthread.h>
-#include <time.h>
-
-#include <iostream> //TODO: remove this
+#include <unistd.h> //sleep
 
 namespace pb // PasswordBreaker
 {
 template <typename T>
+pthread_t SuperiorList<T>::lastRemovalThread;
+
+template <typename T>
 void SuperiorList<T>::push_front(T _value)
 {
     Node_t* temp = new Node_t(_value);
-
+    // empty list
     if(front == NULL) {
         front = back = temp;
         temp->next = nullptr;
         temp->prev = nullptr;
     }
-    else {
+    else { // not empty
         temp->next = front;
         temp->prev = nullptr;
         front->prev = temp;
@@ -32,13 +32,13 @@ template <typename T>
 void SuperiorList<T>::push_back(T _value)
 {
     Node_t* temp = new Node_t(_value);
-
+    // empty list
     if(front == NULL) {
         front = back = temp;
         temp->next = nullptr;
         temp->prev = nullptr;
     }
-    else {
+    else { // not empty list
         temp->next = nullptr;
         temp->prev = back;
         back->next = temp;
@@ -78,23 +78,30 @@ auto SuperiorList<T>::erase(Iterator it) -> Iterator
         it.currentNode->prev->next = it.currentNode->next;
     }
 
-    // run thread that frees memory after little delay
-    pthread_t thread;
+    // This monster create thread that frees memory after 'little' delay
+    // We can't remove memory instantly, because we don't know how many threads are now looking at
+    // this variable. Last launched thread is stored in lastRemovalThread variable
+    // If we create new thread, we just detached older and write new to this variable
+    // This way JoinThreads() will only wait for one that ends as last (youngest one(almost always
+    // true))
+    // setup threads as joinable
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    // lambda that frees memory
     auto Removal = [](void* node) -> void* {
-        struct timespec request = {0, 50'000'000};
-
-        nanosleep(&request, NULL);
-        delete reinterpret_cast<Node_t*>(node);
+        usleep(THREAD_WAIT_BEFORE_REMOVAL); // 90ms
+        if(node)
+            delete reinterpret_cast<Node_t*>(node); // free memory
         pthread_exit(NULL);
     };
-    pthread_create(&thread, &attr, Removal, (void*)it.currentNode);
-    int err = pthread_detach(thread);
-    std::cout << "err: " << err << std::endl;
+    // detach older thread (if exists)
+    pthread_detach(SuperiorList<T>::lastRemovalThread);
+    // create new one
+    pthread_create(&SuperiorList<T>::lastRemovalThread, &attr, Removal, (void*)it.currentNode);
     pthread_attr_destroy(&attr);
 
+    // since we erase one node
     size--;
 
     return it.currentNode->next;
@@ -137,13 +144,25 @@ auto SuperiorList<T>::Iterator::operator--(int) -> Iterator
 template <typename T>
 SuperiorList<T>::~SuperiorList()
 {
+    pthread_join(this->lastRemovalThread, NULL);
+
+    // Clear memory
     Node_t *next, *elem = front;
     while(elem != nullptr) {
         next = elem->next;
-        delete elem;
+        if(elem)
+            delete elem;
 
         elem = next;
     }
+    front = back = nullptr;
+}
+
+template <typename T>
+void SuperiorList<T>::JoinThreads()
+{
+    usleep(THREAD_WAIT_BEFORE_REMOVAL);
+    pthread_join(this->lastRemovalThread, NULL);
 }
 
 } // namespace pb

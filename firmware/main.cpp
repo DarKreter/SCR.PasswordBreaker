@@ -3,18 +3,11 @@
 #include "threads.hpp"
 #include "utils.hpp"
 #include <iostream>
-#include <password.hpp>
 #include <pthread.h>
-
-#include <unistd.h> //sleep
 
 using namespace std;
 
 constexpr int THREADS_NUM = 1;
-
-// Wychodzi na to, że żeby faktycznie usuwać elementy z listy haseł, musze zrobić
-// własną listę, która usuwając będzie tak na prawdę przełączać wskaźniki porpzedniego i następnego
-// elementu, a sam element usunie po np 2 sekundach? (wtedy już każdy na pewno z niego wyjdzie).
 
 int main(int argc, char* argv[])
 {
@@ -31,7 +24,6 @@ int main(int argc, char* argv[])
         pb::ReadDictionary(argv[1], pb::dict);
         pb::ReadPasswords(argv[2], pb::passwd);
 
-        pb::passwd.erase(pb::passwd.begin());
         // for(auto& password : pb::passwd)
         //     cout << password.GetID() << " " << password.GetHash() << " " << password.GetMail()
         //          << " " << password.GetUsername() << endl;
@@ -62,9 +54,10 @@ int main(int argc, char* argv[])
         pthread_join(threads[i], NULL);
     pthread_join(thread, NULL);
 
-    /* Clean up and exit */
+    /* Clean up */
     pthread_attr_destroy(&attr);
 
-    // sleep(1);
+    // See note in list.hpp for full meaning of this creation
+    pb::passwd.JoinThreads();
     pthread_exit(NULL);
 }
