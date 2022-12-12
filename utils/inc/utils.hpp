@@ -1,8 +1,8 @@
 #ifndef MD5_SCR
 #define MD5_SCR
 
+#include "password.hpp"
 #include <list>
-#include <password.hpp>
 #include <string>
 #include <vector>
 

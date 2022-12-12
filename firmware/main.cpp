@@ -1,4 +1,5 @@
 
+#include "list.hpp"
 #include "threads.hpp"
 #include "utils.hpp"
 #include <iostream>
@@ -9,8 +10,24 @@ using namespace std;
 
 constexpr int THREADS_NUM = 1;
 
+// Wychodzi na to, że żeby faktycznie usuwać elementy z listy haseł, musze zrobić
+// własną listę, która usuwając będzie tak na prawdę przełączać wskaźniki porpzedniego i następnego
+// elementu, a sam element usunie po np 2 sekundach? (wtedy już każdy na pewno z niego wyjdzie).
+
 int main(int argc, char* argv[])
 {
+    pb::SuperiorList<int> test;
+    test.push_front(12);
+    test.push_front(13);
+
+    pb::Element_t<int>* node = test.Front();
+
+    while(node != NULL) {
+        cout << node->GetValue() << endl;
+        node = node->Next();
+    }
+
+    return 0;
     // check argc
     if(argc != 3) {
         std::cout << "Incorrect call paramters!" << std::endl;
@@ -24,9 +41,9 @@ int main(int argc, char* argv[])
         ReadDictionary(argv[1], pb::dict);
         ReadPasswords(argv[2], pb::passwd);
 
-        // for(auto& password : pb::passwd)
-        //     cout << password.GetID() << " " << password.GetHash() << " " << password.GetMail()
-        //          << " " << password.GetUsername() << endl;
+        for(auto& password : pb::passwd)
+            cout << password.GetID() << " " << password.GetHash() << " " << password.GetMail()
+                 << " " << password.GetUsername() << endl;
 
         // for(auto& word : pb::dict)
         //     cout << word << endl;
@@ -38,14 +55,14 @@ int main(int argc, char* argv[])
 
     // Create threads
     pthread_t threads[THREADS_NUM];
-    // pthread_t thread;
+    pthread_t thread;
     // properties of each thread
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     pthread_mutex_init(&pb::mutex, NULL);
     // create threads
-    // pthread_create(&thread, &attr, pb::Listener, NULL);
+    pthread_create(&thread, &attr, pb::Listener, NULL);
 
     pthread_create(&threads[0], &attr, pb::Breaker1, NULL);
 

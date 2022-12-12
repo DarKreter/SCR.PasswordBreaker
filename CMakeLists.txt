@@ -11,10 +11,7 @@ add_compile_options(${CPU_OPTIONS})
 set(OPENSSL_USE_STATIC_LIBS TRUE)
 find_package(OpenSSL REQUIRED)
 
-
-add_executable(firmware src/main.cpp src/utils.cpp src/threads.cpp)
-
-target_include_directories(firmware PUBLIC . inc src)
-
-# target_link_libraries(firmware PUBLIC OpenSSL::Crypto)
-target_link_libraries(firmware PUBLIC OpenSSL::SSL)
+add_subdirectory(utils)
+add_subdirectory(list)
+add_subdirectory(threads)
+add_subdirectory(firmware)
