@@ -7,8 +7,6 @@
 
 using namespace std;
 
-constexpr int THREADS_NUM = 2;
-
 int main(int argc, char* argv[])
 {
     // check argc
@@ -37,7 +35,7 @@ int main(int argc, char* argv[])
     }
 
     // Create threads
-    pthread_t breakers[THREADS_NUM];
+    pthread_t breakers[pb::THREADS_NUM];
     pthread_t listener;
     // properties of each thread
     pthread_attr_t attr;
@@ -46,17 +44,20 @@ int main(int argc, char* argv[])
     pthread_mutex_init(&pb::mutex, NULL);
     pthread_cond_init(&pb::condvar, NULL);
     // create threads
-    pthread_create(&listener, &attr, pb::Listener, NULL);
+    pthread_create(&listener, &attr, pb::Listener, (void*)breakers);
 
     pthread_create(&breakers[0], &attr, pb::Breaker1, NULL);
     pthread_create(&breakers[1], &attr, pb::Breaker2, NULL);
 
     /* Wait for all threads to complete */
-    for(uint8_t i = 0; i < THREADS_NUM; i++)
+    for(uint8_t i = 0; i < pb::THREADS_NUM; i++)
         pthread_join(breakers[i], NULL);
-    cout << "Breakers generated every password they could! (too bad)" << endl;
     pthread_cancel(listener);     // kill listener
     pthread_join(listener, NULL); // free his resources
+    if(pb::passwd.length())
+        cout << endl << "Breakers generated every password they could! (too bad)" << endl;
+    else
+        cout << endl << "Hurray! We cracked every password!" << endl;
 
     /* Clean up */
     pthread_attr_destroy(&attr);

@@ -16,6 +16,8 @@ extern std::queue<Password_t> crackedPasswords;
 extern pthread_mutex_t mutex;
 extern pthread_cond_t condvar;
 
+constexpr int THREADS_NUM = 2;
+
 void* Listener(void*);
 
 /**

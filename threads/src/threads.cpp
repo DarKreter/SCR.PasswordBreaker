@@ -17,7 +17,7 @@ std::queue<Password_t> crackedPasswords;
 pthread_mutex_t mutex;
 pthread_cond_t condvar;
 
-void* Listener(void*)
+void* Listener(void* breakers)
 {
     Password_t psw;
     while(true) {
@@ -31,6 +31,17 @@ void* Listener(void*)
         pthread_mutex_unlock(&mutex);
 
         cout << "Password for " << psw.GetMail() << " is " << psw.GetCrackedPassword() << endl;
+
+        // cracked every passowrd
+        // kill breakers
+        if(pb::passwd.length() == 0) {
+            pthread_t* thread = (pthread_t*)breakers;
+            for(int i = 0; i < THREADS_NUM; i++) {
+                pthread_cancel(*thread); // kill listener
+
+                thread++;
+            }
+        }
     }
     return nullptr;
 }
@@ -43,7 +54,6 @@ void* Breaker1(void*)
 {
     string hash;
     for(auto word : pb::dict) {
-        // std::transform(word.begin(), word.end(), word.begin(), ::toupper);
         // usleep(100'000);
         hash = pb::md5(word);
         for(auto password = passwd.begin(); password != passwd.end(); ++password) {
@@ -56,9 +66,9 @@ void* Breaker1(void*)
                 crackedPasswords.push((*password));
                 pthread_mutex_unlock(&mutex);
 
-                pthread_cond_signal(&condvar);
-
                 pb::passwd.erase(password); // remove from passwords to break
+
+                pthread_cond_signal(&condvar);
                 break;
             }
         }
@@ -95,7 +105,6 @@ void* Breaker2(void*)
             }
         }
     }
-
     pthread_exit(NULL);
 }
 
