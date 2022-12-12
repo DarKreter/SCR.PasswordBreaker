@@ -20,6 +20,8 @@ void ReadPasswords(std::string filename, pb::SuperiorList<Password_t>& passwd)
         if(line != "")
             passwd.push_back(std::move(Password_t(line)));
     file.close();
+
+    return;
 }
 
 void ReadDictionary(std::string filename, std::vector<std::string>& dict)

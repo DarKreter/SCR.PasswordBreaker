@@ -15,16 +15,18 @@ pthread_mutex_t mutex;
 
 void* Listener(void*)
 {
-    // while(true)
-    //     //  std::list<Password_t>::iterator
-    //     for(auto password = passwd.begin(); password != passwd.end(); ++password) {
-    //         // pthread_mutex_lock(&mutex);
-    //         cout << password->GetID() << std::endl;
-    //         // pthread_mutex_unlock(&mutex);
+    int i = 0;
+    while(true)
+        for(auto password = passwd.begin(); password != passwd.end(); ++password) {
+            if(i == 3)
+                pb::passwd.erase(password);
 
-    //         sleep(1);
-    //     }
-    return NULL;
+            cout << password->GetID() << std::endl;
+            usleep(10000);
+            if(i++ == 10)
+                return nullptr;
+        }
+    return nullptr;
 }
 
 /**
@@ -34,20 +36,19 @@ void* Listener(void*)
 void* Breaker1(void*)
 {
     // string hash;
-    // for(const auto& word : dict) {
+    // for(const auto& word : pb::dict) {
     //     sleep(1);
-    //     hash = md5(word);
-    //     for(auto& password : passwd) {
-    //         if(!password.IsCracked() && hash == password.GetHash()) {
-    //             cout << "Password for " << password.GetMail() << " is " << word << endl;
-    //             password.Crack();
+    //     hash = pb::md5(word);
+    //     for(auto password = passwd.begin(); password != passwd.end(); ++password) {
+    //         if(hash == password->GetHash()) {
+    //             cout << "Password for " << password->GetMail() << " is " << word << endl;
+    //             pb::passwd.erase(password);
     //             break;
     //         }
     //     }
     // }
 
-    // pthread_exit(NULL);
-    return NULL;
+    pthread_exit(NULL);
 }
 
 } // namespace pb

@@ -10,70 +10,56 @@ namespace pb // PasswordBreaker
 
 template <typename T>
 class SuperiorList {
-public:
-    class Element_t {
+    struct Node_t {
         T value;
-        Element_t *prev, *next;
+        Node_t *prev, *next;
 
-    public:
-        Element_t(T _value) : value(_value) {}
-
-        Element_t* Next() const { return next; }
-        Element_t* Prev() const { return prev; }
-        void Next(Element_t* el) { next = el; }
-        void Prev(Element_t* el) { prev = el; }
-
-        T GetValue() { return value; }
-        void SetValue(const T& _value) { value = _value; }
+        Node_t(T _value) : value(_value) {}
     };
 
-    // struct Iterator {
-    //     using iterator_category = std::forward_iterator_tag;
-    //     using difference_type = std::ptrdiff_t;
-    //     using value_type = T;
-    //     using pointer = T*;   // or also value_type*
-    //     using reference = T&; // or also value_type&
-
-    //     Iterator(pointer ptr) : m_ptr(ptr) {}
-
-    //     reference operator*() const { return *m_ptr; }
-    //     pointer operator->() { return m_ptr; }
-
-    //     // Prefix increment
-    //     Iterator& operator++()
-    //     {
-    //         m_ptr++;
-    //         return *this;
-    //     }
-
-    //     // Postfix increment
-    //     Iterator operator++(int)
-    //     {
-    //         Iterator tmp = *this;
-    //         ++(*this);
-    //         return tmp;
-    //     }
-
-    //     friend bool operator==(const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr;
-    //     }; friend bool operator!=(const Iterator& a, const Iterator& b) { return a.m_ptr !=
-    //     b.m_ptr; };
-
-    // private:
-    //     pointer m_ptr;
-    // };
-
-private:
     size_t size;
-    Element_t* front;
-    Element_t* back;
+    Node_t* front;
+    Node_t* back;
 
 public:
-    SuperiorList() : size(0), front(NULL), back(NULL) {}
+    class Iterator {
+    public: // TODO: remove this
+        friend SuperiorList;
+        Node_t* currentNode;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+
+        Iterator(Node_t* _node) : currentNode(_node) {}
+        // Iterator() noexcept : m_pCurrentNode(m_spRoot) {}
+
+        T& operator*() const { return currentNode->value; }
+        T* operator->() { return &currentNode->value; } // ???
+
+        Iterator& operator++();   // Prefix increment
+        Iterator operator++(int); // Postfix increment
+        Iterator& operator--();   // Prefix decrement
+        Iterator operator--(int); // Postfix decrement
+
+        bool operator==(const Iterator& a) const { return this->currentNode == a.currentNode; };
+        bool operator!=(const Iterator& a) const { return this->currentNode != a.currentNode; };
+    };
+
+    SuperiorList() : size(0), front(nullptr), back(nullptr) {}
+    ~SuperiorList();
 
     size_t length() const { return size; }
 
-    Element_t* Front() { return front; }
-    Element_t* Back() { return back; }
+    T& Front() { return front->value; }
+    T& Back() { return front->value; }
+
+    Iterator begin() { return Iterator(front); }
+    Iterator end() { return Iterator(nullptr); }
+    Iterator rbegin() { return Iterator(nullptr); }
+    Iterator rend() { return Iterator(back); }
+
+    Iterator erase(Iterator it);
 
     void push_front(T _value);
     void push_back(T _value);

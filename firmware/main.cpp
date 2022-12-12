@@ -6,6 +6,8 @@
 #include <password.hpp>
 #include <pthread.h>
 
+#include <unistd.h> //sleep
+
 using namespace std;
 
 constexpr int THREADS_NUM = 1;
@@ -29,13 +31,7 @@ int main(int argc, char* argv[])
         pb::ReadDictionary(argv[1], pb::dict);
         pb::ReadPasswords(argv[2], pb::passwd);
 
-        pb::SuperiorList<pb::Password_t>::Element_t* node = pb::passwd.Front();
-
-        while(node != NULL) {
-            cout << node->GetValue().GetMail() << endl;
-            node = node->Next();
-        }
-
+        pb::passwd.erase(pb::passwd.begin());
         // for(auto& password : pb::passwd)
         //     cout << password.GetID() << " " << password.GetHash() << " " << password.GetMail()
         //          << " " << password.GetUsername() << endl;
@@ -64,10 +60,11 @@ int main(int argc, char* argv[])
     /* Wait for all threads to complete */
     for(uint8_t i = 0; i < THREADS_NUM; i++)
         pthread_join(threads[i], NULL);
+    pthread_join(thread, NULL);
 
     /* Clean up and exit */
     pthread_attr_destroy(&attr);
-    pthread_exit(NULL);
 
-    return 0;
+    // sleep(1);
+    pthread_exit(NULL);
 }

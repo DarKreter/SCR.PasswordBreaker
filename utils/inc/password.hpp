@@ -11,10 +11,9 @@ class Password_t {
     std::string md5_hash;
     std::string email;
     std::string username;
-    bool is_cracked;
 
 public:
-    explicit Password_t(std::string line) : is_cracked(false)
+    explicit Password_t(std::string line)
     {
         std::stringstream ss(line);
         ss >> id >> md5_hash >> email >> std::ws;
@@ -25,9 +24,6 @@ public:
     inline std::string GetHash() const { return md5_hash; }
     inline std::string GetMail() const { return email; }
     inline std::string GetUsername() const { return username; }
-    inline bool IsCracked() const { return is_cracked; }
-
-    inline void Crack() { is_cracked = true; }
 };
 
 } // namespace pb
