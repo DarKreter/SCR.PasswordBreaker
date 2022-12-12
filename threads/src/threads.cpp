@@ -1,8 +1,10 @@
 #include "threads.hpp"
 #include "utils.hpp"
+#include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <pthread.h>
-#include <unistd.h> //sleep
+// #include <unistd.h> //sleep
 
 using namespace std;
 
@@ -40,8 +42,41 @@ void* Listener(void*)
 void* Breaker1(void*)
 {
     string hash;
-    for(const auto& word : pb::dict) {
+    for(auto word : pb::dict) {
+        // std::transform(word.begin(), word.end(), word.begin(), ::toupper);
         // usleep(100'000);
+        hash = pb::md5(word);
+        for(auto password = passwd.begin(); password != passwd.end(); ++password) {
+            if(hash == (*password).GetHash()) {
+                pb::passwd.WriteLock();
+                password->Cracked(word);
+                pb::passwd.Unlock();
+                // Send information to listener
+                pthread_mutex_lock(&mutex);
+                crackedPasswords.push((*password));
+                pthread_mutex_unlock(&mutex);
+
+                pthread_cond_signal(&condvar);
+
+                pb::passwd.erase(password); // remove from passwords to break
+                break;
+            }
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
+/**
+ * @brief
+ * Just go through every word on lower-case and check them
+ */
+void* Breaker2(void*)
+{
+    string hash;
+    for(auto word : pb::dict) {
+
+        word[0] = toupper(word[0]);
         hash = pb::md5(word);
         for(auto password = passwd.begin(); password != passwd.end(); ++password) {
             if(hash == (*password).GetHash()) {

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-constexpr int THREADS_NUM = 1;
+constexpr int THREADS_NUM = 2;
 
 int main(int argc, char* argv[])
 {
@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
     pthread_create(&listener, &attr, pb::Listener, NULL);
 
     pthread_create(&breakers[0], &attr, pb::Breaker1, NULL);
+    pthread_create(&breakers[1], &attr, pb::Breaker2, NULL);
 
     /* Wait for all threads to complete */
     for(uint8_t i = 0; i < THREADS_NUM; i++)
