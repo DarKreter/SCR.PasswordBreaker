@@ -96,7 +96,7 @@ auto SuperiorList<T>::erase(Iterator it) -> Iterator
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     // lambda that frees memory
     auto Removal = [](void* node) -> void* {
-        usleep(THREAD_WAIT_BEFORE_REMOVAL); // 90ms
+        usleep(THREAD_WAIT_BEFORE_REMOVAL);
         if(node)
             delete reinterpret_cast<Node_t*>(node); // free memory
         pthread_exit(NULL);
@@ -117,9 +117,9 @@ auto SuperiorList<T>::erase(Iterator it) -> Iterator
 template <typename T>
 auto SuperiorList<T>::Iterator::operator++() -> Iterator&
 {
-    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
+    // pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->next;
-    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
+    // pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return *this;
 }
 
@@ -128,9 +128,9 @@ template <typename T>
 auto SuperiorList<T>::Iterator::operator++(int) -> Iterator
 {
     Iterator tmp = *this;
-    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
+    // pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->next;
-    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
+    // pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return tmp;
 }
 
@@ -138,9 +138,9 @@ auto SuperiorList<T>::Iterator::operator++(int) -> Iterator
 template <typename T>
 auto SuperiorList<T>::Iterator::operator--() -> Iterator&
 {
-    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
+    // pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->prev;
-    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
+    // pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return *this;
 }
 
@@ -149,9 +149,9 @@ template <typename T>
 auto SuperiorList<T>::Iterator::operator--(int) -> Iterator
 {
     Iterator tmp = *this;
-    pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
+    // pthread_rwlock_rdlock(&(myList->rw_mutex)); // read lock
     currentNode = currentNode->prev;
-    pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
+    // pthread_rwlock_unlock(&(myList->rw_mutex)); // unlock
     return tmp;
 }
 

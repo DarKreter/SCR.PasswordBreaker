@@ -22,13 +22,13 @@ public:
         std::getline(ss, username);
     }
 
-    inline uint16_t GetID() const { return id; }
-    inline std::string GetHash() const { return md5_hash; }
-    inline std::string GetMail() const { return email; }
-    inline std::string GetUsername() const { return username; }
-    inline std::string GetCrackedPassword() const { return crackedPsw; }
+    inline uint16_t& GetID() { return id; }
+    inline std::string& GetHash() { return md5_hash; }
+    inline std::string& GetMail() { return email; }
+    inline std::string& GetUsername() { return username; }
+    inline std::string& GetCrackedPassword() { return crackedPsw; }
 
-    inline void Cracked(std::string s) { crackedPsw = s; }
+    inline void Cracked(const std::string& s) { crackedPsw = s; }
 };
 
 } // namespace pb

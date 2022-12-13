@@ -37,7 +37,7 @@ void ReadDictionary(std::string filename, std::vector<std::string>& dict)
     file.close();
 }
 
-string md5(string input)
+string md5(const string& input)
 {
     std::stringstream result;
 

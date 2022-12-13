@@ -48,30 +48,13 @@ void* Listener(void* breakers)
 
 /**
  * @brief
- * Just go through every word on lower-case and check them
+ * lower-case
  */
 void* Breaker1(void*)
 {
     string hash;
-    for(auto word : pb::dict) {
-        // usleep(100'000);
-        hash = pb::md5(word);
-        for(auto password = passwd.begin(); password != passwd.end(); ++password) {
-            if(hash == (*password).GetHash()) {
-                pb::passwd.WriteLock();
-                password->Cracked(word);
-                pb::passwd.Unlock();
-                // Send information to listener
-                pthread_mutex_lock(&mutex);
-                crackedPasswords.push((*password));
-                pthread_mutex_unlock(&mutex);
-
-                pb::passwd.erase(password); // remove from passwords to break
-
-                pthread_cond_signal(&condvar);
-                break;
-            }
-        }
+    for(auto& word : pb::dict) {
+        BreakerCore(word, hash);
     }
 
     pthread_exit(NULL);
@@ -79,33 +62,67 @@ void* Breaker1(void*)
 
 /**
  * @brief
- * Just go through every word on lower-case and check them
+ * first letter upper-case
  */
 void* Breaker2(void*)
 {
     string hash;
     for(auto word : pb::dict) {
-
         word[0] = toupper(word[0]);
-        hash = pb::md5(word);
-        for(auto password = passwd.begin(); password != passwd.end(); ++password) {
-            if(hash == (*password).GetHash()) {
-                pb::passwd.WriteLock();
-                password->Cracked(word);
-                pb::passwd.Unlock();
-                // Send information to listener
-                pthread_mutex_lock(&mutex);
-                crackedPasswords.push((*password));
-                pthread_mutex_unlock(&mutex);
 
-                pthread_cond_signal(&condvar);
-
-                pb::passwd.erase(password); // remove from passwords to break
-                break;
-            }
-        }
+        BreakerCore(word, hash);
     }
     pthread_exit(NULL);
+}
+
+/**
+ * @brief
+ * Full upper-case
+ */
+void* Breaker3(void*)
+{
+    string hash;
+    for(auto word : pb::dict) {
+        std::transform(word.begin(), word.end(), word.begin(), ::toupper);
+        BreakerCore(word, hash);
+    }
+    pthread_exit(NULL);
+}
+
+/**
+ * @brief
+ * Just go through every word on upper-case and check them
+ */
+void* Breaker3(void*)
+{
+    string hash;
+    for(auto word : pb::dict) {
+        std::transform(word.begin(), word.end(), word.begin(), ::toupper);
+        BreakerCore(word, hash);
+    }
+    pthread_exit(NULL);
+}
+
+void BreakerCore(std::string& word, std::string& hash)
+{
+    hash = pb::md5(word);
+
+    for(auto password = passwd.begin(); password != passwd.end(); ++password) {
+        if(hash == (*password).GetHash()) {
+            pb::passwd.WriteLock();
+            password->Cracked(word);
+            pb::passwd.Unlock();
+            // Send information to listener
+            pthread_mutex_lock(&mutex);
+            crackedPasswords.push((*password));
+            pthread_mutex_unlock(&mutex);
+
+            pb::passwd.erase(password); // remove from passwords to break
+
+            pthread_cond_signal(&condvar);
+            break;
+        }
+    }
 }
 
 } // namespace pb

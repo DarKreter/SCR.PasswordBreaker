@@ -9,7 +9,7 @@
 
 namespace pb {
 
-std::string md5(std::string input);
+std::string md5(const std::string& input);
 std::string SSL_Version();
 
 void ReadPasswords(std::string filename, pb::SuperiorList<Password_t>& passwd);
