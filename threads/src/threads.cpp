@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include <pthread.h>
+#include <tuple>
 // #include <unistd.h> //sleep
 
 using namespace std;
@@ -36,7 +37,7 @@ void* Listener(void* breakers)
         // kill breakers
         if(pb::passwd.length() == 0) {
             pthread_t* thread = (pthread_t*)breakers;
-            for(int i = 0; i < THREADS_NUM; i++) {
+            for(int i = 0; i < MAX_THREADS_NUM; i++) {
                 pthread_cancel(*thread); // kill listener
 
                 thread++;
@@ -91,15 +92,22 @@ void* Breaker3(void*)
 
 /**
  * @brief
- * Just go through every word on upper-case and check them
+ * Full upper-case
  */
-void* Breaker3(void*)
+void* Breaker4(void* data)
 {
     string hash;
-    for(auto word : pb::dict) {
-        std::transform(word.begin(), word.end(), word.begin(), ::toupper);
-        BreakerCore(word, hash);
-    }
+    std::vector<std::string> allComb;
+    auto [f, b, charset] = *(dataPack*)data;
+    delete(dataPack*)data;
+    GenerateCombination(charset, f + b, allComb);
+
+    for(auto& comb : allComb)
+        for(auto word : pb::dict) {
+            word = comb.substr(0, f) + word + comb.substr(f);
+            BreakerCore(word, hash);
+        }
+
     pthread_exit(NULL);
 }
 

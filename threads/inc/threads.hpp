@@ -10,20 +10,29 @@
 
 namespace pb // PasswordBreaker
 {
+
 extern pb::SuperiorList<Password_t> passwd;
 extern std::vector<std::string> dict;
 extern std::queue<Password_t> crackedPasswords;
 extern pthread_mutex_t mutex;
 extern pthread_cond_t condvar;
 
-constexpr int THREADS_NUM = 3;
+constexpr int MAX_THREADS_NUM = 10;
 
 void* Listener(void*);
 void BreakerCore(std::string& word, std::string& hash);
 
 void* Breaker1(void*); // normal words
 void* Breaker2(void*); // first letter upper-case
-void* Breaker3(void*); // whole word upper-case
+void* Breaker3(void*); // full upper-case
+
+// for breaker4
+struct dataPack {
+    uint8_t first;
+    uint8_t back;
+    std::string charset;
+};
+void* Breaker4(void*); //
 } // namespace pb
 
 #endif // THREADS_SCR

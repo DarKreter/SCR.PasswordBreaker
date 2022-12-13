@@ -37,6 +37,20 @@ void ReadDictionary(std::string filename, std::vector<std::string>& dict)
     file.close();
 }
 
+void GenerateCombination(string set, uint8_t k, std::vector<std::string>& allComb, string prefix)
+{
+    if(!k) {
+        allComb.emplace_back(prefix);
+        return;
+    }
+
+    for(size_t i = 0; i < set.length(); i++) {
+        string newPrefix;
+        newPrefix = prefix + set[i];
+        GenerateCombination(set, k - 1, allComb, newPrefix);
+    }
+}
+
 string md5(const string& input)
 {
     std::stringstream result;

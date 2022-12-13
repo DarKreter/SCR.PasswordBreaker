@@ -15,6 +15,8 @@ std::string SSL_Version();
 void ReadPasswords(std::string filename, pb::SuperiorList<Password_t>& passwd);
 void ReadDictionary(std::string filename, std::vector<std::string>& dict);
 
+void GenerateCombination(std::string, uint8_t, std::vector<std::string>&, std::string = "");
+
 } // namespace pb
 
 #endif // MD5_SCR

@@ -4,6 +4,7 @@
 #include "utils.hpp"
 #include <iostream>
 #include <pthread.h>
+#include <tuple>
 
 using namespace std;
 
@@ -35,7 +36,7 @@ int main(int argc, char* argv[])
     }
 
     // Create threads
-    pthread_t breakers[pb::THREADS_NUM];
+    pthread_t breakers[pb::MAX_THREADS_NUM];
     pthread_t listener;
     // properties of each thread
     pthread_attr_t attr;
@@ -47,12 +48,27 @@ int main(int argc, char* argv[])
     // create threads
     pthread_create(&listener, &attr, pb::Listener, (void*)breakers);
 
-    pthread_create(&breakers[0], &attr, pb::Breaker1, NULL);
-    pthread_create(&breakers[1], &attr, pb::Breaker2, NULL);
-    pthread_create(&breakers[2], &attr, pb::Breaker3, NULL);
+    int thr_cnt = 0;
+    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker1, NULL);
+    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker2, NULL);
+    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker3, NULL);
+
+    std::string charset = "1234567890!@#$%^&*()-=_+[]{};'\\:\"|./,<>?`~";
+    std::vector<std::string> allComb;
+
+    for(uint8_t i = 0; i < 3; i++)
+        for(uint8_t j = 0; j < 3; j++) {
+            // auto [f, b, charset] = *(dataPack*)data;
+
+            pb::GenerateCombination(charset, i + j, allComb);
+            // pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker4,
+            //                reinterpret_cast<void*>(new pb::dataPack(i, j, charset)));
+        }
+
+    std::cout << allComb.size() << endl;
 
     /* Wait for all threads to complete */
-    for(uint8_t i = 0; i < pb::THREADS_NUM; i++)
+    for(uint8_t i = 0; i < thr_cnt; i++)
         pthread_join(breakers[i], NULL);
     pthread_cancel(listener);     // kill listener
     pthread_join(listener, NULL); // free his resources
