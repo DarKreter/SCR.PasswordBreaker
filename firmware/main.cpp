@@ -49,24 +49,27 @@ int main(int argc, char* argv[])
     pthread_create(&listener, &attr, pb::Listener, (void*)breakers);
 
     int thr_cnt = 0;
-    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker1, NULL);
-    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker2, NULL);
-    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker3, NULL);
+    // pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker1, NULL);
+    // pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker2, NULL);
+    // pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker3, NULL);
 
-    std::string charset = "1234567890!@#$%^&*()-=_+[]{};'\\:\"|./,<>?`~";
-    std::vector<std::string> allComb;
+    // std::string charset = "1234567890!@#$%^&*()-=_+[]{};'\\:\"|./,<>?`~";
+    std::string charset = "123";
+    std::vector<std::string> temp;
+    std::vector<std::pair<std::string,std::string>> allComb;
 
-    for(uint8_t i = 0; i < 3; i++)
-        for(uint8_t j = 0; j < 3; j++) {
-            // auto [f, b, charset] = *(dataPack*)data;
+    for(uint8_t i = 0; i <= 2; i++)
+            pb::GenerateCombination(charset, i, temp);
 
-            pb::GenerateCombination(charset, i + j, allComb);
-            // pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker4,
-            //                reinterpret_cast<void*>(new pb::dataPack(i, j, charset)));
-        }
+    for(auto first : temp)
+        for(auto second : temp)
+            allComb.emplace_back(std::make_pair(first, second));
+    temp.clear();
 
-    std::cout << allComb.size() << endl;
-
+    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker4, 
+    reinterpret_cast<void*>(new pb::dataPack(pb::dict.begin(), 
+    pb::dict.end(), allComb.begin(), allComb.end())));
+    
     /* Wait for all threads to complete */
     for(uint8_t i = 0; i < thr_cnt; i++)
         pthread_join(breakers[i], NULL);

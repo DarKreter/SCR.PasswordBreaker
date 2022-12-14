@@ -96,17 +96,20 @@ void* Breaker3(void*)
  */
 void* Breaker4(void* data)
 {
-    string hash;
-    std::vector<std::string> allComb;
-    auto [f, b, charset] = *(dataPack*)data;
+    // get dict begin dict end , comb begin comb end
+    string hash, word;
+    auto [dictBegin, dictEnd, combBegin, combEnd] = *(dataPack*)data;
     delete(dataPack*)data;
-    GenerateCombination(charset, f + b, allComb);
 
-    for(auto& comb : allComb)
-        for(auto word : pb::dict) {
-            word = comb.substr(0, f) + word + comb.substr(f);
+    for(auto comb = combBegin; comb != combEnd; comb++)
+    {
+        auto [pre, post] = (*comb);
+        for(auto dic = dictBegin; dic != dictEnd; dic++){
+            word = pre + (*dic) + post;
             BreakerCore(word, hash);
         }
+
+    }
 
     pthread_exit(NULL);
 }

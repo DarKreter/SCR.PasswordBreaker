@@ -28,10 +28,14 @@ void* Breaker3(void*); // full upper-case
 
 // for breaker4
 struct dataPack {
-    uint8_t first;
-    uint8_t back;
-    std::string charset;
+    #define string_vector std::vector<std::string>::iterator
+    #define pair_string_vector std::vector<std::pair<std::string,std::string>>::iterator
+    string_vector dictBegin;
+    string_vector dictEnd;
+    pair_string_vector combBegin;
+    pair_string_vector combEnd;
 };
+
 void* Breaker4(void*); //
 } // namespace pb
 
