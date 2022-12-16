@@ -18,7 +18,10 @@ void ReadPasswords(std::string filename, pb::SuperiorList<Password_t>& passwd)
     string line;
     while(getline(file, line))
         if(line != "")
-            passwd.push_back(std::move(Password_t(line)));
+            passwd.push_back(
+                std::move(Password_t(line))); // password_t has intelligent constructor that handles
+                                              // parsing this raw  line from file
+
     file.close();
 
     return;
@@ -33,7 +36,7 @@ void ReadDictionary(std::string filename, std::vector<std::string>& dict)
     string line;
     while(getline(file, line))
         if(line != "")
-            dict.push_back(std::move(line));
+            dict.push_back(std::move(line)); // just put words in vector
     file.close();
 }
 
@@ -59,6 +62,7 @@ string md5(const string& input)
 
     MD5((unsigned char*)input.c_str(), input.length(), digest);
 
+    // change to prettier form
     for(int i = 0; i < 16; ++i)
         result << std::hex << setfill('0') << setw(2) << (int)digest[i];
 

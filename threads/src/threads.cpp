@@ -22,15 +22,19 @@ void* Listener(void* breakers)
 {
     Password_t psw;
     while(true) {
+        // waiting for other threads to pass cracked passwords here via queue
+        // they inform us with cond variable
         pthread_mutex_lock(&mutex);
         while(crackedPasswords.empty())
             pthread_cond_wait(&condvar, &mutex);
 
+        // Got password
         psw = crackedPasswords.front();
         crackedPasswords.pop();
 
         pthread_mutex_unlock(&mutex);
 
+        // display information about it
         cout << "Password for " << psw.GetMail() << " is " << psw.GetCrackedPassword() << endl;
 
         // cracked every passowrd
@@ -38,7 +42,7 @@ void* Listener(void* breakers)
         if(pb::passwd.length() == 0) {
             pthread_t* thread = (pthread_t*)breakers;
             for(int i = 0; i < MAX_THREADS_NUM; i++) {
-                pthread_cancel(*thread); // kill listener
+                pthread_cancel(*thread); // kill breakers
 
                 thread++;
             }
@@ -49,31 +53,33 @@ void* Listener(void* breakers)
 
 std::string WordMod1(std::string word)
 {
+    // first letter to upper
     word[0] = ::toupper(word[0]);
     return word;
 }
 
 std::string WordMod2(std::string word)
 {
+    // whole word upper-case
     std::transform(word.begin(), word.end(), word.begin(), ::toupper);
     return word;
 }
 
-/**
- * @brief
- * Full upper-case
- */
 void* Breaker1(void* data)
 {
-    // get dict begin dict end , comb begin comb end
+    // get dict begin dict end, comb begin comb end
     string hash, word;
     auto [dictBegin, dictEnd, combBegin, combEnd, WordMod] = *(dataPack*)data;
     delete(dataPack*)data;
 
+    // go through combinations
     for(auto comb = combBegin; comb != combEnd; comb++) {
         auto [pre, post] = (*comb);
+        // and words
         for(auto dic = dictBegin; dic != dictEnd; dic++) {
+            // construct word
             word = pre + WordMod(*dic) + post;
+            // and try to crack it
             BreakerCore(word, hash);
         }
     }
@@ -81,14 +87,35 @@ void* Breaker1(void* data)
     pthread_exit(NULL);
 }
 
+void* Breaker2(void* data)
+{
+    // get dict begin dict end , comb begin comb end
+    string hash, word;
+    auto [dictBegin, dictEnd, combBegin, combEnd, WordMod] = *(dataPack*)data;
+    delete(dataPack*)data;
+
+    // go through each word twice to create combinations
+    for(auto dic1 = dictBegin; dic1 != dictEnd; dic1++) {
+        for(auto dic2 = pb::dict.begin(); dic2 != pb::dict.end(); dic2++) {
+            word = (*dic1) + " " + (*dic2); // merge them
+            BreakerCore(word, hash);
+        }
+    }
+    // }
+
+    pthread_exit(NULL);
+}
+
 void BreakerCore(std::string& word, std::string& hash)
 {
+    // hash word
     hash = pb::md5(word);
 
+    // check each password
     for(auto password = passwd.begin(); password != passwd.end(); ++password) {
-        if(hash == (*password).GetHash()) {
+        if(hash == (*password).GetHash()) { // if we made it
             pb::passwd.WriteLock();
-            password->Cracked(word);
+            password->Cracked(word); // marked as cracked
             pb::passwd.Unlock();
             // Send information to listener
             pthread_mutex_lock(&mutex);
