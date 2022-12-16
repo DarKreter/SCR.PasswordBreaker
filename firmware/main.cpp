@@ -1,6 +1,7 @@
 #include "list.hpp"
 #include "threads.hpp"
 #include "utils.hpp"
+#include <fstream>
 #include <iostream>
 #include <pthread.h>
 #include <tuple>
@@ -65,6 +66,7 @@ int main(int argc, char* argv[])
     decltype(&pb::WordMod1) WordModTab[3] = {[](string w) { return w; }, pb::WordMod1,
                                              pb::WordMod2};
 
+reset:
     // First loop divides with combinations and second with dict container
     // third is for word modifications
     for(size_t i = 0, j = combDivide; i < allComb.size(); i += combDivide, j += combDivide) {
@@ -93,6 +95,35 @@ int main(int argc, char* argv[])
                        reinterpret_cast<void*>(
                            new pb::dataPack(pb::dict.begin() + i, pb::dict.begin() + j,
                                             allComb.begin(), allComb.begin(), pb::WordMod1)));
+    }
+
+    string line;
+    while(true) {
+        cin >> line;
+        if(line == "quit")
+            break;
+
+        ifstream file(line);
+        if(!file.is_open())
+            cout << "Cannot open file " << line << endl;
+        else {
+            file.close();
+            for(uint8_t i = 0; i < thr_cnt; i++)
+                pthread_cancel(breakers[i]);
+            // pthread_cancel(listener); // kill listener
+            thr_cnt = 0;
+
+            for(auto password = pb::passwd.begin(); password != pb::passwd.end(); ++password)
+                pb::passwd.erase(password);
+
+            pb::crackedPasswords.clear();
+
+            pb::ReadPasswords(line, pb::passwd);
+
+            cout << "Now breaking passwords from " << line << "!" << endl;
+
+            goto reset;
+        }
     }
 
     /* Wait for all threads to complete */
