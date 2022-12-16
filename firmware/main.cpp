@@ -56,20 +56,33 @@ int main(int argc, char* argv[])
     // std::string charset = "1234567890!@#$%^&*()-=_+[]{};'\\:\"|./,<>?`~";
     std::string charset = "123";
     std::vector<std::string> temp;
-    std::vector<std::pair<std::string,std::string>> allComb;
+    std::vector<std::pair<std::string, std::string>> allComb;
 
     for(uint8_t i = 0; i <= 2; i++)
-            pb::GenerateCombination(charset, i, temp);
+        pb::GenerateCombination(charset, i, temp);
 
     for(auto first : temp)
         for(auto second : temp)
             allComb.emplace_back(std::make_pair(first, second));
     temp.clear();
 
-    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker4, 
-    reinterpret_cast<void*>(new pb::dataPack(pb::dict.begin(), 
-    pb::dict.end(), allComb.begin(), allComb.end())));
-    
+    size_t combDivide = allComb.size() / 5;
+    size_t dictDivide = pb::dict.size() / 5;
+
+    for(size_t i = 0, j = combDivide; i < allComb.size(); i += combDivide, j += combDivide) {
+        if(j > allComb.size())
+            j = allComb.size();
+        for(size_t k = 0, l = dictDivide; k < pb::dict.size(); k += dictDivide, l += dictDivide) {
+            if(l > pb::dict.size())
+                l = pb::dict.size();
+
+            pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker4,
+                           reinterpret_cast<void*>(
+                               new pb::dataPack(pb::dict.begin() + k, pb::dict.begin() + l,
+                                                allComb.begin() + i, allComb.begin() + j)));
+        }
+    }
+
     /* Wait for all threads to complete */
     for(uint8_t i = 0; i < thr_cnt; i++)
         pthread_join(breakers[i], NULL);

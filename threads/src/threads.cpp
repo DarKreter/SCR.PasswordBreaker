@@ -101,14 +101,12 @@ void* Breaker4(void* data)
     auto [dictBegin, dictEnd, combBegin, combEnd] = *(dataPack*)data;
     delete(dataPack*)data;
 
-    for(auto comb = combBegin; comb != combEnd; comb++)
-    {
+    for(auto comb = combBegin; comb != combEnd; comb++) {
         auto [pre, post] = (*comb);
-        for(auto dic = dictBegin; dic != dictEnd; dic++){
+        for(auto dic = dictBegin; dic != dictEnd; dic++) {
             word = pre + (*dic) + post;
             BreakerCore(word, hash);
         }
-
     }
 
     pthread_exit(NULL);
