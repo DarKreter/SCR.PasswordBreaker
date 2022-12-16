@@ -1,4 +1,3 @@
-
 #include "list.hpp"
 #include "threads.hpp"
 #include "utils.hpp"
@@ -54,7 +53,7 @@ int main(int argc, char* argv[])
     // pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker3, NULL);
 
     // std::string charset = "1234567890!@#$%^&*()-=_+[]{};'\\:\"|./,<>?`~";
-    std::string charset = "123";
+    std::string charset = "1234567890";
     std::vector<std::string> temp;
     std::vector<std::pair<std::string, std::string>> allComb;
 
@@ -66,8 +65,10 @@ int main(int argc, char* argv[])
             allComb.emplace_back(std::make_pair(first, second));
     temp.clear();
 
-    size_t combDivide = allComb.size() / 5;
-    size_t dictDivide = pb::dict.size() / 5;
+    size_t combDivide = allComb.size() / 4;
+    size_t dictDivide = pb::dict.size() / 4;
+
+    decltype(&pb::WordMod1) WordModTab[2] = {pb::WordMod1, pb::WordMod2};
 
     for(size_t i = 0, j = combDivide; i < allComb.size(); i += combDivide, j += combDivide) {
         if(j > allComb.size())
@@ -75,11 +76,11 @@ int main(int argc, char* argv[])
         for(size_t k = 0, l = dictDivide; k < pb::dict.size(); k += dictDivide, l += dictDivide) {
             if(l > pb::dict.size())
                 l = pb::dict.size();
-
-            pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker4,
-                           reinterpret_cast<void*>(
-                               new pb::dataPack(pb::dict.begin() + k, pb::dict.begin() + l,
-                                                allComb.begin() + i, allComb.begin() + j)));
+            for(auto& WordMod : WordModTab)
+                pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker1,
+                               reinterpret_cast<void*>(new pb::dataPack(
+                                   pb::dict.begin() + k, pb::dict.begin() + l, allComb.begin() + i,
+                                   allComb.begin() + j, WordMod)));
         }
     }
 

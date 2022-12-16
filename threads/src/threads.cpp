@@ -47,64 +47,33 @@ void* Listener(void* breakers)
     return nullptr;
 }
 
-/**
- * @brief
- * lower-case
- */
-void* Breaker1(void*)
+std::string WordMod1(std::string word)
 {
-    string hash;
-    for(auto& word : pb::dict) {
-        BreakerCore(word, hash);
-    }
-
-    pthread_exit(NULL);
+    word[0] = ::toupper(word[0]);
+    return word;
 }
 
-/**
- * @brief
- * first letter upper-case
- */
-void* Breaker2(void*)
+std::string WordMod2(std::string word)
 {
-    string hash;
-    for(auto word : pb::dict) {
-        word[0] = toupper(word[0]);
-
-        BreakerCore(word, hash);
-    }
-    pthread_exit(NULL);
+    std::transform(word.begin(), word.end(), word.begin(), ::toupper);
+    return word;
 }
 
 /**
  * @brief
  * Full upper-case
  */
-void* Breaker3(void*)
-{
-    string hash;
-    for(auto word : pb::dict) {
-        std::transform(word.begin(), word.end(), word.begin(), ::toupper);
-        BreakerCore(word, hash);
-    }
-    pthread_exit(NULL);
-}
-
-/**
- * @brief
- * Full upper-case
- */
-void* Breaker4(void* data)
+void* Breaker1(void* data)
 {
     // get dict begin dict end , comb begin comb end
     string hash, word;
-    auto [dictBegin, dictEnd, combBegin, combEnd] = *(dataPack*)data;
+    auto [dictBegin, dictEnd, combBegin, combEnd, WordMod] = *(dataPack*)data;
     delete(dataPack*)data;
 
     for(auto comb = combBegin; comb != combEnd; comb++) {
         auto [pre, post] = (*comb);
         for(auto dic = dictBegin; dic != dictEnd; dic++) {
-            word = pre + (*dic) + post;
+            word = pre + WordMod(*dic) + post;
             BreakerCore(word, hash);
         }
     }
