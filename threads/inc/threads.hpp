@@ -14,7 +14,8 @@ namespace pb // PasswordBreaker
 
 extern pb::SuperiorList<Password_t> passwd;
 extern std::vector<std::string> dict;
-extern std::queue<Password_t> crackedPasswords;
+extern std::queue<Password_t> threadCommQueue;
+extern std::vector<Password_t> crackedPasswords;
 extern pthread_mutex_t mutex;
 extern pthread_cond_t condvar;
 

@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include <pthread.h>
+#include <signal.h>
 #include <tuple>
 // #include <unistd.h> //sleep
 
@@ -14,23 +15,39 @@ namespace pb // PasswordBreaker
 
 pb::SuperiorList<Password_t> passwd;
 std::vector<std::string> dict;
-std::queue<Password_t> crackedPasswords;
+std::queue<Password_t> threadCommQueue;
+std::vector<Password_t> crackedPasswords;
 pthread_mutex_t mutex;
 pthread_cond_t condvar;
 
+void Capture(int sig)
+{
+    switch(sig) {
+    case SIGHUP:
+        printf("-------------------------\n");
+        printf("SIGHUP signal received!\nPrinting cracked passwords!\n");
+        for(auto& psw : pb::crackedPasswords)
+            cout << "Password for " << psw.GetMail() << " is " << psw.GetCrackedPassword() << endl;
+        printf("-------------------------\n");
+        break;
+    }
+}
+
 void* Listener(void* breakers)
 {
+    signal(SIGHUP, Capture);
     Password_t psw;
     while(true) {
         // waiting for other threads to pass cracked passwords here via queue
         // they inform us with cond variable
         pthread_mutex_lock(&mutex);
-        while(crackedPasswords.empty())
+        while(threadCommQueue.empty())
             pthread_cond_wait(&condvar, &mutex);
 
         // Got password
-        psw = crackedPasswords.front();
-        crackedPasswords.pop();
+        psw = threadCommQueue.front();
+        threadCommQueue.pop();
+        crackedPasswords.push_back(psw);
 
         pthread_mutex_unlock(&mutex);
 
@@ -119,7 +136,7 @@ void BreakerCore(std::string& word, std::string& hash)
             pb::passwd.Unlock();
             // Send information to listener
             pthread_mutex_lock(&mutex);
-            crackedPasswords.push((*password));
+            threadCommQueue.push((*password));
             pthread_mutex_unlock(&mutex);
 
             pb::passwd.erase(password); // remove from passwords to break

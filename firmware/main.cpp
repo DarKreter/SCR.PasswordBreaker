@@ -59,8 +59,8 @@ int main(int argc, char* argv[])
     temp.clear();
 
     // divide vectors to threads
-    size_t combDivide = allComb.size() / 4;
-    size_t dictDivide = pb::dict.size() / 4;
+    size_t combDivide = allComb.size() / 5;
+    size_t dictDivide = pb::dict.size() / 1;
 
     decltype(&pb::WordMod1) WordModTab[3] = {[](string w) { return w; }, pb::WordMod1,
                                              pb::WordMod2};
