@@ -15,7 +15,7 @@ namespace pb // PasswordBreaker
 template <typename T>
 class SuperiorList {
 
-#define THREAD_WAIT_BEFORE_REMOVAL 50'000 // 50ms
+#define THREAD_WAIT_BEFORE_REMOVAL 500'000 // 50ms
 
     // Single element of the list
     struct Node_t {
