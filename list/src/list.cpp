@@ -1,6 +1,4 @@
 #include "list.hpp"
 
-namespace pb {
-
-
-} // namespace pb
+namespace pb
+{}	// namespace pb
