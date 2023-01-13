@@ -14,7 +14,7 @@ namespace pb {	// PasswordBreaker
 // recommended to explicity wait for all threads.
 template<typename T>
 class SuperiorList {
-#define THREAD_WAIT_BEFORE_REMOVAL 500'000	// 50ms
+#define THREAD_WAIT_BEFORE_REMOVAL 500'000	// 500ms
 
 	// Single element of the list
 	struct Node_t {

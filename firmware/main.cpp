@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	std::vector<std::pair<std::string, std::string>> allComb;
 
 	// If we want more/less pre/postfixes this is the place
-	for(uint8_t i = 0; i <= 4; i++)
+	for(uint8_t i = 0; i <= 2; i++)
 		pb::GenerateCombination(charset, i, temp);
 
 	// combine combination to post and pre options
@@ -92,22 +92,22 @@ reset:
 	}
 
 	// Here we divide two-worded passwords to threads
-	// dictDivide = pb::dict.size() / 10;
-	// if(!dictDivide)
-	//     dictDivide = 1;
+	dictDivide = pb::dict.size() / 10;
+	if(!dictDivide)
+	    dictDivide = 1;
 
-	// // same style as higher
-	// for(size_t i = 0, j = dictDivide; i < pb::dict.size(); i += dictDivide, j
-	// += dictDivide) {
-	//     if(j > pb::dict.size())
-	//         j = pb::dict.size();
-	//     pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker2,
-	//                    reinterpret_cast<void*>(
-	//                        new pb::dataPack(pb::dict.begin() + i,
-	//                        pb::dict.begin() + j,
-	//                                         allComb.begin(), allComb.begin(),
-	//                                         pb::WordMod1)));
-	// }
+	// same style as higher
+	for(size_t i = 0, j = dictDivide; i < pb::dict.size(); i += dictDivide, j
+	+= dictDivide) {
+	    if(j > pb::dict.size())
+	        j = pb::dict.size();
+	    pthread_create(&breakers[thr_cnt++], &attr, pb::Breaker2,
+	                   reinterpret_cast<void*>(
+	                       new pb::dataPack(pb::dict.begin() + i,
+	                       pb::dict.begin() + j,
+	                                        allComb.begin(), allComb.begin(),
+	                                        pb::WordMod1)));
+	}
 
 	string line;
 	while(true) {
